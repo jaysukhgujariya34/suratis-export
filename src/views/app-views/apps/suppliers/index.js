@@ -13,6 +13,7 @@ import Flex from "components/shared-components/Flex";
 import NumberFormat from "react-number-format";
 import { useNavigate } from "react-router-dom";
 import utils from "utils";
+import AddSuppliers from "./Add";
 
 const { Option } = Select;
 
@@ -44,7 +45,7 @@ const getStockStatus = (stockCount) => {
   return null;
 };
 
-const categories = ["Cloths", "Bags", "Shoes", "Watches", "Devices"];
+const categories = ["spices", "Bags", "Shoes", "Watches", "Devices"];
 
 const SupplierList = () => {
   const navigate = useNavigate();
@@ -200,17 +201,17 @@ const SupplierList = () => {
       <Flex
         alignItems="center"
         justifyContent="space-between"
-        mobileFlex={false}
+        // mobileFlex={false}
       >
-        <Flex className="mb-1" mobileFlex={false}>
-          <div className="mr-md-3 mb-3">
+        <Flex mobileFlex={false} alignItems="center" justifyContent="center">
+          <div>
             <Input
               placeholder="Search"
               prefix={<SearchOutlined />}
               onChange={(e) => onSearch(e)}
             />
           </div>
-          <div className="mb-3">
+          <div>
             <Select
               defaultValue="All"
               className="w-100"
@@ -226,18 +227,11 @@ const SupplierList = () => {
               ))}
             </Select>
           </div>
-          <div>
-            <Button
-              onClick={addProduct}
-              type="primary"
-              className="buttone-collps"
-              icon={<PlusCircleOutlined />}
-              block
-            >
-              Add Suppliers
-            </Button>
-          </div>
         </Flex>
+
+        <div>
+          <AddSuppliers />
+        </div>
       </Flex>
       <div className="table-responsive">
         <Table
