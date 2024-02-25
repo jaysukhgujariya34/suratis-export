@@ -8,6 +8,7 @@ import Flex from 'components/shared-components/Flex'
 import NumberFormat from 'react-number-format';
 import { useNavigate } from "react-router-dom";
 import utils from 'utils'
+import AddBuers from './Add';
 
 const { Option } = Select
 
@@ -196,7 +197,7 @@ const BuyersList = () => {
 					</div>
 				</Flex>
 				<div>
-					<Button onClick={addProduct} type="primary" icon={<PlusCircleOutlined />} block>Add Buyers</Button>
+					<AddBuers/>
 				</div>
 			</Flex>
 			<div className="table-responsive" style={{height:'65vh'}}>
