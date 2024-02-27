@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Button,
   Form,
@@ -12,6 +12,8 @@ import {
 import TextArea from "antd/es/input/TextArea";
 import { PlusOutlined } from "@ant-design/icons";
 import { FlagIcon } from "react-flag-kit";
+import axios from "axios";
+import { PostApi } from "services/api";
 
 const AddBuers = () => {
   const [open, setOpen] = useState(false);
@@ -35,19 +37,28 @@ const AddBuers = () => {
     return e?.fileList;
   };
 
-  const onFinish = (values) => {
-    console.log("Received values of form: ", values);
+  const onFinish = async (values) => {
+    console.log("values", values);
+    const result = await PostApi("/api/buyers", values);
+
+    if (result && result.status === 200) {
+      handleCancel()
+      console.log(result.data.message);
+    }
+
   };
 
-  const validateNumber = (_, value) => {
-    if (!value || value.trim() === "") {
-      return Promise.reject(new Error("Number is required"));
-    }
-    return Promise.resolve();
-  };
 
   const handleCountryCodeChange = (value) => {
     setCountryCode(value);
+  };
+
+  const validatePhoneNumber = (_, value) => {
+    const phoneNumberRegex = /^[0-9]{10}$/; // Modify this regex according to your phone number format
+    if (!value || phoneNumberRegex.test(value)) {
+      return Promise.resolve();
+    }
+    return Promise.reject("Please enter a valid phone number");
   };
 
   return (
@@ -74,6 +85,7 @@ const AddBuers = () => {
         <Form
           labelCol={{ span: 4 }}
           wrapperCol={{ span: 24 }}
+          initialValues={{ remember: true }}
           onFinish={onFinish}
           layout="vertical"
         >
@@ -99,9 +111,12 @@ const AddBuers = () => {
 
           <Form.Item
             style={{ width: "100%" }}
-            name="phoneNumber"
+            name="contectNomber"
             label="Phone Number"
-            rules={[{ validator: validateNumber, max: 10 }]}
+            rules={[
+              { required: true, message: "Please input your phone number!" },
+              { validator: validatePhoneNumber },
+            ]}
           >
             <Input
               addonBefore={
@@ -109,6 +124,7 @@ const AddBuers = () => {
                   <Select
                     defaultValue={countryCode}
                     style={{ border: "none" }}
+                    value={countryCode}
                     onChange={handleCountryCodeChange}
                     dropdownRender={(menu) => <div>{menu}</div>}
                   >
@@ -132,13 +148,23 @@ const AddBuers = () => {
             />
           </Form.Item>
 
-          <Form.Item label="Catagory">
-            <Select>
+          <Form.Item
+            label="Catagory"
+            name="catagory"
+            rules={[{ required: true, message: "Please select an Catagory" }]}
+            hasFeedback
+          >
+            <Select placeholder="Select an option">
               <Select.Option value="spices">Spices</Select.Option>
             </Select>
           </Form.Item>
 
-          <Form.Item label="product">
+          <Form.Item
+            label="Product"
+            name="product"
+            rules={[{ required: true, message: "Please select an Product" }]}
+            hasFeedback
+          >
             <Select>
               <Select.Option value="Redchilli">Red chilli</Select.Option>
               <Select.Option value="StarAnise">Star Anise</Select.Option>
@@ -146,7 +172,12 @@ const AddBuers = () => {
             </Select>
           </Form.Item>
 
-          <Form.Item label="State">
+          <Form.Item
+            label="State"
+            name="state"
+            rules={[{ required: true, message: "Please select an State" }]}
+            hasFeedback
+          >
             <Select>
               <Select.Option value="gujrat">Gujrat</Select.Option>
             </Select>

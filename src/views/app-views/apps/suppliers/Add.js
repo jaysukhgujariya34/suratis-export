@@ -136,13 +136,23 @@ const AddSuppliers = () => {
             />
           </Form.Item>
 
-          <Form.Item label="Catagory">
+          <Form.Item
+            label="Catagory"
+            name="catagory"
+            rules={[{ required: true, message: "Please select an Catagory" }]}
+            hasFeedback
+          >
             <Select>
               <Select.Option value="spices">Spices</Select.Option>
             </Select>
           </Form.Item>
 
-          <Form.Item label="product">
+          <Form.Item
+            label="Product"
+            name="product"
+            rules={[{ required: true, message: "Please select an Product" }]}
+            hasFeedback
+          >
             <Select>
               <Select.Option value="Redchilli">Red chilli</Select.Option>
               <Select.Option value="StarAnise">Star Anise</Select.Option>
@@ -150,7 +160,12 @@ const AddSuppliers = () => {
             </Select>
           </Form.Item>
 
-          <Form.Item label="State">
+          <Form.Item
+            label="State"
+            name="state"
+            rules={[{ required: true, message: "Please select an State" }]}
+            hasFeedback
+          >
             <Select>
               <Select.Option value="gujrat">Gujrat</Select.Option>
             </Select>

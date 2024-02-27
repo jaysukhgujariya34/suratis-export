@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, Table, Select, Input, Button, Badge, Menu } from "antd";
 import ProductListData from "assets/data/product-list.data.json";
 import {
@@ -16,6 +16,7 @@ import NumberFormat from "react-number-format";
 import { useNavigate } from "react-router-dom";
 import utils from "utils";
 import AddBuers from "./Add";
+import axios from "axios";
 
 const { Option } = Select;
 
@@ -51,9 +52,15 @@ const categories = ["Cloths", "Bags", "Shoes", "Watches", "Devices"];
 
 const BuyersList = () => {
   const navigate = useNavigate();
-  const [list, setList] = useState(ProductListData);
+  const [list, setList] = useState(null);
   const [selectedRows, setSelectedRows] = useState([]);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+
+  // api data store
+
+  const [data, setData] = useState(null);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const dropdownMenu = (row) => (
     <Menu>
@@ -91,10 +98,6 @@ const BuyersList = () => {
     </Menu>
   );
 
-  const addProduct = () => {
-    navigate(`/app/apps/ecommerce/add-product`);
-  };
-
   const viewDetails = (row) => {
     navigate(`/app/apps/ecommerce/edit-product/${row.id}`);
   };
@@ -123,20 +126,37 @@ const BuyersList = () => {
       title: "Users",
       dataIndex: "name",
       render: (_, record) => (
-        <div className="d-flex">
-          <AvatarStatus
+        <div className="d-flex" style={{marginRight:"10px",alignItems:'center'}}>
+          {/* <AvatarStatus
             size={40}
             type="square"
-            src={record.image}
+            // src={record.image}
             name={record.name}
-          />
+          /> */}
+          <div
+            style={{
+              width: "30px",
+              fontWeight: "700",
+              backgroundColor: 'grey',
+              color:"#fff",
+              textAlign: 'center',
+              fontSize:'20px',
+              height: "30px",
+              borderRadius: "8px",
+              textTransform: "capitalize",
+              marginRight:"10px"
+            }}
+          >
+            {record.name[0]}
+          </div>
+          {record.name}
         </div>
       ),
       sorter: (a, b) => utils.antdTableSorter(a, b, "name"),
     },
     {
       title: "Contect Number",
-      dataIndex: "contectNumber",
+      dataIndex: "contectNomber",
       sorter: (a, b) => utils.antdTableSorter(a, b, "contectNumber"),
     },
     {
@@ -215,6 +235,27 @@ const BuyersList = () => {
       setList(ProductListData);
     }
   };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get("http://localhost:8000/api/buyers");
+        console.log("111111", response.data);
+        setList(response?.data);
+        setLoading(false);
+      } catch (error) {
+        setError(error);
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+
+    // Cleanup function to cancel the API call if component unmounts
+    return () => {
+      // Cancel the API call if needed (if using axios cancel token)
+    };
+  }, []);
 
   return (
     <Card>
