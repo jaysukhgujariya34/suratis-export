@@ -14,8 +14,9 @@ import { PlusOutlined } from "@ant-design/icons";
 import { FlagIcon } from "react-flag-kit";
 import axios from "axios";
 import { PostApi } from "services/api";
+import { Navigate } from "react-router-dom";
 
-const AddBuers = () => {
+const AddBuers = ({ add }) => {
   const [open, setOpen] = useState(false);
   const [countryCode, setCountryCode] = useState("+1"); // Default country code
 
@@ -37,29 +38,30 @@ const AddBuers = () => {
     return e?.fileList;
   };
 
+  const [form] = Form.useForm();
   const onFinish = async (values) => {
     console.log("values", values);
     const result = await PostApi("/api/buyers", values);
 
     if (result && result.status === 200) {
-      handleCancel()
+      handleCancel();
+      add(true);
       console.log(result.data.message);
     }
-
+    form.resetFields();
   };
-
 
   const handleCountryCodeChange = (value) => {
     setCountryCode(value);
   };
 
-  const validatePhoneNumber = (_, value) => {
-    const phoneNumberRegex = /^[0-9]{10}$/; // Modify this regex according to your phone number format
-    if (!value || phoneNumberRegex.test(value)) {
-      return Promise.resolve();
-    }
-    return Promise.reject("Please enter a valid phone number");
-  };
+  // const validatePhoneNumber = (_, value) => {
+  //   const phoneNumberRegex = /^[0-9]$/; // Modify this regex according to your phone number format
+  //   if (!value || phoneNumberRegex.test(value)) {
+  //     return Promise.resolve();
+  //   }
+  //   return Promise.reject("Please enter a valid phone number");
+  // };
 
   return (
     <>
@@ -88,6 +90,7 @@ const AddBuers = () => {
           initialValues={{ remember: true }}
           onFinish={onFinish}
           layout="vertical"
+          form={form}
         >
           <Form.Item
             hasFeedback
@@ -115,7 +118,7 @@ const AddBuers = () => {
             label="Phone Number"
             rules={[
               { required: true, message: "Please input your phone number!" },
-              { validator: validatePhoneNumber },
+              // { validator: validatePhoneNumber },?
             ]}
           >
             <Input
@@ -139,6 +142,10 @@ const AddBuers = () => {
                     <Select.Option value="+91">
                       <FlagIcon code="IN" />
                       <span style={{ marginLeft: 8 }}>+91</span>
+                    </Select.Option>
+                    <Select.Option value="+971">
+                      <FlagIcon code="AE" />
+                      <span style={{ marginLeft: 8 }}>+971</span>
                     </Select.Option>
                     {/* Add more country codes as needed */}
                   </Select>

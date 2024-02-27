@@ -58,9 +58,7 @@ const BuyersList = () => {
 
   // api data store
 
-  const [data, setData] = useState(null);
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [add, setAdd] = useState(false);
 
   const dropdownMenu = (row) => (
     <Menu>
@@ -126,7 +124,10 @@ const BuyersList = () => {
       title: "Users",
       dataIndex: "name",
       render: (_, record) => (
-        <div className="d-flex" style={{marginRight:"10px",alignItems:'center'}}>
+        <div
+          className="d-flex"
+          style={{ marginRight: "10px", alignItems: "center" }}
+        >
           {/* <AvatarStatus
             size={40}
             type="square"
@@ -137,14 +138,14 @@ const BuyersList = () => {
             style={{
               width: "30px",
               fontWeight: "700",
-              backgroundColor: 'grey',
-              color:"#fff",
-              textAlign: 'center',
-              fontSize:'20px',
+              backgroundColor: "grey",
+              color: "#fff",
+              textAlign: "center",
+              fontSize: "20px",
               height: "30px",
               borderRadius: "8px",
               textTransform: "capitalize",
-              marginRight:"10px"
+              marginRight: "10px",
             }}
           >
             {record.name[0]}
@@ -240,12 +241,9 @@ const BuyersList = () => {
     const fetchData = async () => {
       try {
         const response = await axios.get("http://localhost:8000/api/buyers");
-        console.log("111111", response.data);
         setList(response?.data);
-        setLoading(false);
       } catch (error) {
-        setError(error);
-        setLoading(false);
+        console.log('error',error)
       }
     };
 
@@ -255,7 +253,12 @@ const BuyersList = () => {
     return () => {
       // Cancel the API call if needed (if using axios cancel token)
     };
-  }, []);
+  }, [add]);
+
+  const newAddBuers = (e) => {
+    console.log("55555", e);
+    setAdd(e);
+  };
 
   return (
     <Card>
@@ -290,7 +293,7 @@ const BuyersList = () => {
           </div>
         </Flex>
         <div>
-          <AddBuers />
+          <AddBuers add={newAddBuers} />
         </div>
       </Flex>
       <div className="table-responsive">

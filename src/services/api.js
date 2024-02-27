@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const baseUrl = "https://suratis-backend.onrender.com";
+const baseUrl = "http://localhost:8000";
 
 export const Get = async (path) => {
   try {
