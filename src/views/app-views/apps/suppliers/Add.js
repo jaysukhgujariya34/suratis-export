@@ -96,11 +96,11 @@ const AddSuppliers = () => {
           >
             <Input placeholder="sampale@gmail.com" />
           </Form.Item>
-
+          <p style={{ marginBottom: "2px" }}>Phone Number</p>
           <Form.Item
             style={{ width: "100%" }}
             name="phoneNumber"
-            label="Phone Number"
+            label=""
             rules={[{ validator: validateNumber, max: 10 }]}
           >
             <Input
@@ -123,6 +123,10 @@ const AddSuppliers = () => {
                     <Select.Option value="+91">
                       <FlagIcon code="IN" />
                       <span style={{ marginLeft: 8 }}>+91</span>
+                    </Select.Option>
+                    <Select.Option value="+61">
+                      <FlagIcon code="AU" />
+                      <span style={{ marginLeft: 8 }}>+61</span>
                     </Select.Option>
                     {/* Add more country codes as needed */}
                   </Select>
@@ -150,6 +154,27 @@ const AddSuppliers = () => {
             <Select>
               <Select.Option value="gujrat">Gujrat</Select.Option>
             </Select>
+          </Form.Item>
+          <p style={{ marginBottom: "2px" }}>GST Number</p>
+          <Form.Item
+            hasFeedback
+            // label="GST Number"
+            name="GST"
+            validateDebounce={1000}
+            rules={[{ required: true, message: "GST Number Is Required" }]}
+          >
+            <Input placeholder="GST number" />
+          </Form.Item>
+
+          <p style={{ marginBottom: "2px" }}>FSSAI Number</p>
+          <Form.Item
+            hasFeedback
+            label=""
+            name="FSSAI"
+            validateDebounce={1000}
+            rules={[{ required: true, message: "FSSAI Number Is Required" }]}
+          >
+            <Input placeholder="FSSAI number" />
           </Form.Item>
 
           {/* <Form.Item label="TextArea">

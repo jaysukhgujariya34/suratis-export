@@ -71,6 +71,16 @@ export const protectedRoutes = [
     path: `${APP_PREFIX_PATH}/apps/calendar`,
     component: React.lazy(() => import("views/app-views/apps/calendar")),
   },
+  {
+    key: "apps.suppliers",
+    path: `${APP_PREFIX_PATH}/apps/suppliers`,
+    component: React.lazy(() => import("views/app-views/apps/suppliers")),
+  },
+  {
+    key: "apps.buyers",
+    path: `${APP_PREFIX_PATH}/apps/buyers`,
+    component: React.lazy(() => import("views/app-views/apps/buyers")),
+  },
   //   {
   //     key: "apps.project",
   //     path: `${APP_PREFIX_PATH}/apps/project`,
@@ -83,13 +93,13 @@ export const protectedRoutes = [
   //       import("views/app-views/apps/project/project-list/ProjectList")
   //     ),
   //   },
-  {
-    key: "apps.project.scrumboard",
-    path: `${APP_PREFIX_PATH}/apps/project/scrumboard`,
-    component: React.lazy(() =>
-      import("views/app-views/apps/project/scrumboard")
-    ),
-  },
+  // {
+  //   key: "apps.project.scrumboard",
+  //   path: `${APP_PREFIX_PATH}/apps/project/scrumboard`,
+  //   component: React.lazy(() =>
+  //     import("views/app-views/apps/project/scrumboard")
+  //   ),
+  // },
   // {
   //     key: 'apps.ecommerce',
   //     path: `${APP_PREFIX_PATH}/apps/ecommerce`,
@@ -105,16 +115,7 @@ export const protectedRoutes = [
   //     path: `${APP_PREFIX_PATH}/apps/ecommerce/edit-product/:id`,
   //     component: React.lazy(() => import('views/app-views/apps/e-commerce/edit-product')),
   // },
-  {
-    key: "apps.ecommerce.product-list",
-    path: `${APP_PREFIX_PATH}/apps/suppliers`,
-    component: React.lazy(() => import("views/app-views/apps/suppliers")),
-  },
-  {
-    key: "apps.ecommerce.product-list",
-    path: `${APP_PREFIX_PATH}/apps/buyers`,
-    component: React.lazy(() => import("views/app-views/apps/buyers")),
-  },
+
   // {
   //     key: 'apps.ecommerce.orders',
   //     path: `${APP_PREFIX_PATH}/apps/ecommerce/orders`,

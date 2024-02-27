@@ -206,7 +206,7 @@ const appsNavTree = [
     isGroupTitle: true,
     submenu: [
       {
-        key: "apps-ecommerce-productList",
+        key: "apps-suppliers",
         path: `${APP_PREFIX_PATH}/apps/suppliers`,
         title: "Suppliers",
         icon: UserOutlined,
@@ -214,7 +214,7 @@ const appsNavTree = [
         submenu: [],
       },
       {
-        key: "apps-ecommerce-productList",
+        key: "apps-buyers",
         path: `${APP_PREFIX_PATH}/apps/buyers`,
         title: "Buyers",
         icon: UsergroupAddOutlined,

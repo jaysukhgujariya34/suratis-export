@@ -6,6 +6,8 @@ import {
   DeleteOutlined,
   SearchOutlined,
   PlusCircleOutlined,
+  EditOutlined,
+  DownloadOutlined,
 } from "@ant-design/icons";
 import AvatarStatus from "components/shared-components/AvatarStatus";
 import EllipsisDropdown from "components/shared-components/EllipsisDropdown";
@@ -61,6 +63,21 @@ const SupplierList = () => {
           <span className="ml-2">View Details</span>
         </Flex>
       </Menu.Item>
+
+      <Menu.Item onClick={() => viewDetails(row)}>
+        <Flex alignItems="center">
+          <EditOutlined />
+          <span className="ml-2">Edit Details</span>
+        </Flex>
+      </Menu.Item>
+
+      <Menu.Item onClick={() => viewDetails(row)}>
+        <Flex alignItems="center">
+          <DownloadOutlined />
+          <span className="ml-2">Download</span>
+        </Flex>
+      </Menu.Item>
+
       <Menu.Item onClick={() => deleteRow(row)}>
         <Flex alignItems="center">
           <DeleteOutlined />
@@ -135,16 +152,6 @@ const SupplierList = () => {
     {
       title: "Product",
       dataIndex: "product",
-      //   render: (price) => (
-      //     <div>
-      //       <NumberFormat
-      //         displayType={"text"}
-      //         value={(Math.round(price * 100) / 100).toFixed(2)}
-      //         prefix={"$"}
-      //         thousandSeparator={true}
-      //       />
-      //     </div>
-      //   ),
       sorter: (a, b) => utils.antdTableSorter(a, b, "price"),
     },
     {

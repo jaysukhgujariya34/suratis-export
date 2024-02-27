@@ -13,7 +13,6 @@ const Routes = () => {
 			<Route path="/" element={<ProtectedRoute />}>
 				<Route path="/" element={<Navigate replace to={AUTHENTICATED_ENTRY} />} />
 				{protectedRoutes.map((route, index) => {
-					console.log("route", route);
 					return (
 						<Route 
 							key={route.key + index} 
