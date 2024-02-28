@@ -17,6 +17,7 @@ import { useNavigate } from "react-router-dom";
 import utils from "utils";
 import AddBuers from "./Add";
 import axios from "axios";
+import { GetApi } from "services/api";
 
 const { Option } = Select;
 
@@ -60,7 +61,7 @@ const BuyersList = () => {
 
   const [add, setAdd] = useState(false);
 
-  console.log("list,list", list);
+
 
   const dropdownMenu = (row) => (
     <Menu>
@@ -240,14 +241,12 @@ const BuyersList = () => {
   };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get("http://localhost:8000/api/buyers");
-        setList(response?.data);
-      } catch (error) {
-        console.log('error',error)
-      }
-    };
+       const fetchData = async () => {
+         const response = await GetApi("/api/buyers");
+         if (response && response.status === 200) {
+           setList(response?.data);
+         }
+       };
 
     fetchData();
 
