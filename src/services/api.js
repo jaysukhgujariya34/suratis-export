@@ -1,8 +1,8 @@
 import axios from "axios";
 
-const baseUrl = "http://localhost:8000";
+const baseUrl = "https://suratis-backend.onrender.com";
 
-export const Get = async (path) => {
+export const GetApi = async (path) => {
   try {
     // eslint-disable-next-line prefer-const
     let response = await axios.get(baseUrl + path, {

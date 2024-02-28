@@ -60,6 +60,8 @@ const BuyersList = () => {
 
   const [add, setAdd] = useState(false);
 
+  console.log("list,list", list);
+
   const dropdownMenu = (row) => (
     <Menu>
       <Menu.Item onClick={() => viewDetails(row)}>
@@ -256,7 +258,6 @@ const BuyersList = () => {
   }, [add]);
 
   const newAddBuers = (e) => {
-    console.log("55555", e);
     setAdd(e);
   };
 

@@ -40,7 +40,7 @@ const AddBuers = ({ add }) => {
 
   const [form] = Form.useForm();
   const onFinish = async (values) => {
-    console.log("values", values);
+
     const result = await PostApi("/api/buyers", values);
 
     if (result && result.status === 200) {
@@ -157,8 +157,8 @@ const AddBuers = ({ add }) => {
 
           <Form.Item
             label="Catagory"
-            name="catagory"
-            rules={[{ required: true, message: "Please select an Catagory" }]}
+            name="category"
+            rules={[{ required: true, message: "Please select an category" }]}
             hasFeedback
           >
             <Select placeholder="Select an option">
