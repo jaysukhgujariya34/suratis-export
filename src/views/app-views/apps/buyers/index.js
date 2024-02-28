@@ -139,13 +139,13 @@ const BuyersList = () => {
           /> */}
           <div
             style={{
-              width: "30px",
+              minWidth: "30px",
               fontWeight: "700",
               backgroundColor: "grey",
               color: "#fff",
               textAlign: "center",
               fontSize: "20px",
-              height: "30px",
+              minHeight: "30px",
               borderRadius: "8px",
               textTransform: "capitalize",
               marginRight: "10px",
