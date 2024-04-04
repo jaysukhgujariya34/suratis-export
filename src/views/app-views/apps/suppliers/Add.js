@@ -15,7 +15,7 @@ import { FlagIcon } from "react-flag-kit";
 import { GetApi, PostApi } from "services/api";
 
 
-const AddSuppliers = () => {
+const AddSuppliers = ({ add }) => {
   const [open, setOpen] = useState(false);
   const [countryCode, setCountryCode] = useState("+1"); // Default country code
 
@@ -41,6 +41,7 @@ const AddSuppliers = () => {
     const result = await PostApi("/api/suppliers", values);
     if (result && result.status === 200) {
       handleCancel();
+      add(true);
     }
   };
 

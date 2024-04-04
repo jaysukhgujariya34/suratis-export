@@ -55,6 +55,7 @@ const SupplierList = () => {
   const [list, setList] = useState([]);
   const [selectedRows, setSelectedRows] = useState([]);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+    const [add, setAdd] = useState(false);
 
   const dropdownMenu = (row) => (
     <Menu>
@@ -220,6 +221,10 @@ const SupplierList = () => {
          // Cancel the API call if needed (if using axios cancel token)
        };
      }, []);
+  
+    const newAddBuers = (e) => {
+      setAdd(e);
+    };
 
   return (
     <Card>
@@ -255,7 +260,7 @@ const SupplierList = () => {
         </Flex>
 
         <div>
-          <AddSuppliers />
+          <AddSuppliers add={newAddBuers} />
         </div>
       </Flex>
       <div className="table-responsive">
