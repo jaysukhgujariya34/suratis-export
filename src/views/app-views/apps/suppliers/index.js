@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, Table, Select, Input, Button, Badge, Menu } from "antd";
 import ProductListData from "assets/data/product-list.data.json";
 import {
@@ -16,6 +16,7 @@ import NumberFormat from "react-number-format";
 import { useNavigate } from "react-router-dom";
 import utils from "utils";
 import AddSuppliers from "./Add";
+import { GetApi } from "services/api";
 
 const { Option } = Select;
 
@@ -51,7 +52,7 @@ const categories = ["spices", "Bags", "Shoes", "Watches", "Devices"];
 
 const SupplierList = () => {
   const navigate = useNavigate();
-  const [list, setList] = useState(ProductListData);
+  const [list, setList] = useState([]);
   const [selectedRows, setSelectedRows] = useState([]);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
 
@@ -170,8 +171,9 @@ const SupplierList = () => {
     {
       title: "",
       dataIndex: "actions",
-      render: (_, elm) => (
+      render: (elm) => (
         <div className="text-right">
+          {console.log("11111",elm)}
           <EllipsisDropdown menu={dropdownMenu(elm)} />
         </div>
       ),
@@ -202,6 +204,22 @@ const SupplierList = () => {
       setList(ProductListData);
     }
   };
+
+     useEffect(() => {
+       const fetchData = async () => {
+         const response = await GetApi("/api/suppliers");
+         if (response && response.status === 200) {
+           setList(response?.data);
+         }
+       };
+
+       fetchData();
+
+       // Cleanup function to cancel the API call if component unmounts
+       return () => {
+         // Cancel the API call if needed (if using axios cancel token)
+       };
+     }, []);
 
   return (
     <Card>

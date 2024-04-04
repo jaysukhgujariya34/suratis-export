@@ -65,6 +65,7 @@ const BuyersList = () => {
 
   const dropdownMenu = (row) => (
     <Menu>
+      {console.log("2222", row)}
       <Menu.Item onClick={() => viewDetails(row)}>
         <Flex alignItems="center">
           <EyeOutlined />
@@ -121,7 +122,7 @@ const BuyersList = () => {
   const tableColumns = [
     {
       title: "ID",
-      dataIndex: "id",
+      dataIndex: "_id",
     },
     {
       title: "Users",
@@ -176,16 +177,6 @@ const BuyersList = () => {
     {
       title: "Product",
       dataIndex: "product",
-      //   render: (price) => (
-      //     <div>
-      //       <NumberFormat
-      //         displayType={"text"}
-      //         value={(Math.round(price * 100) / 100).toFixed(2)}
-      //         prefix={"$"}
-      //         thousandSeparator={true}
-      //       />
-      //     </div>
-      //   ),
       sorter: (a, b) => utils.antdTableSorter(a, b, "price"),
     },
     {
@@ -209,7 +200,10 @@ const BuyersList = () => {
       dataIndex: "actions",
       render: (_, elm) => (
         <div className="text-right">
-          <EllipsisDropdown menu={dropdownMenu(elm)} />
+          <EllipsisDropdown
+            menu={dropdownMenu(elm)}
+            onClick={console.log("3333", elm)}
+          />
         </div>
       ),
     },
@@ -224,7 +218,7 @@ const BuyersList = () => {
 
   const onSearch = (e) => {
     const value = e.currentTarget.value;
-    const searchArray = e.currentTarget.value ? list : ProductListData;
+    const searchArray = e.currentTarget.value ? list : list;
     const data = utils.wildCardSearch(searchArray, value);
     setList(data);
     setSelectedRowKeys([]);
@@ -233,10 +227,10 @@ const BuyersList = () => {
   const handleShowCategory = (value) => {
     if (value !== "All") {
       const key = "category";
-      const data = utils.filterArray(ProductListData, key, value);
+      const data = utils.filterArray(list, key, value);
       setList(data);
     } else {
-      setList(ProductListData);
+      setList(list);
     }
   };
 

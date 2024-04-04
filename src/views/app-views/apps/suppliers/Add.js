@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Button,
   Form,
@@ -12,6 +12,8 @@ import {
 import TextArea from "antd/es/input/TextArea";
 import { PlusOutlined } from "@ant-design/icons";
 import { FlagIcon } from "react-flag-kit";
+import { GetApi, PostApi } from "services/api";
+
 
 const AddSuppliers = () => {
   const [open, setOpen] = useState(false);
@@ -35,8 +37,11 @@ const AddSuppliers = () => {
     return e?.fileList;
   };
 
-  const onFinish = (values) => {
-    console.log("Received values of form: ", values);
+  const onFinish = async (values) => {
+    const result = await PostApi("/api/suppliers", values);
+    if (result && result.status === 200) {
+      handleCancel();
+    }
   };
 
   const validateNumber = (_, value) => {
@@ -49,6 +54,9 @@ const AddSuppliers = () => {
   const handleCountryCodeChange = (value) => {
     setCountryCode(value);
   };
+
+ 
+
 
   return (
     <>
@@ -77,9 +85,14 @@ const AddSuppliers = () => {
           onFinish={onFinish}
           layout="vertical"
         >
+          <p style={{ marginBottom: "2px" }}>
+            {" "}
+            <span style={{ color: "red", marginRight: "2px" }}>*</span>Company
+            Name
+          </p>
           <Form.Item
             hasFeedback
-            label="Name"
+            // label="Company Name"
             name="name"
             validateDebounce={1000}
             rules={[{ required: true, message: "Supplier Name Is Required" }]}
@@ -96,7 +109,10 @@ const AddSuppliers = () => {
           >
             <Input placeholder="sampale@gmail.com" />
           </Form.Item>
-          <p style={{ marginBottom: "2px" }}>Phone Number</p>
+          <p style={{ marginBottom: "2px" }}>
+            <span style={{ color: "red", marginRight: "2px" }}>*</span>Phone
+            Number
+          </p>
           <Form.Item
             style={{ width: "100%" }}
             name="phoneNumber"
@@ -112,7 +128,7 @@ const AddSuppliers = () => {
                     onChange={handleCountryCodeChange}
                     dropdownRender={(menu) => <div>{menu}</div>}
                   >
-                    <Select.Option value="+1">
+                    <Select.Option value={countryCode}>
                       <FlagIcon code="US" />
                       <span style={{ marginLeft: 8 }}>+1</span>
                     </Select.Option>
@@ -147,17 +163,18 @@ const AddSuppliers = () => {
             </Select>
           </Form.Item>
 
+          <p style={{ marginBottom: "2px" }}>
+            <span style={{ color: "red", marginRight: "2px" }}>*</span>
+            Product
+          </p>
           <Form.Item
-            label="Product"
-            name="product"
-            rules={[{ required: true, message: "Please select an Product" }]}
             hasFeedback
+            // label="GST Number"
+            name="product"
+            validateDebounce={1000}
+            rules={[{ required: true, message: "Product Name Required" }]}
           >
-            <Select>
-              <Select.Option value="Redchilli">Red chilli</Select.Option>
-              <Select.Option value="StarAnise">Star Anise</Select.Option>
-              <Select.Option value="Turmeric">Turmeric</Select.Option>
-            </Select>
+            <Input placeholder="Product Name" />
           </Form.Item>
 
           <Form.Item
@@ -170,31 +187,6 @@ const AddSuppliers = () => {
               <Select.Option value="gujrat">Gujrat</Select.Option>
             </Select>
           </Form.Item>
-          <p style={{ marginBottom: "2px" }}>GST Number</p>
-          <Form.Item
-            hasFeedback
-            // label="GST Number"
-            name="GST"
-            validateDebounce={1000}
-            rules={[{ required: true, message: "GST Number Is Required" }]}
-          >
-            <Input placeholder="GST number" />
-          </Form.Item>
-
-          <p style={{ marginBottom: "2px" }}>FSSAI Number</p>
-          <Form.Item
-            hasFeedback
-            label=""
-            name="FSSAI"
-            validateDebounce={1000}
-            rules={[{ required: true, message: "FSSAI Number Is Required" }]}
-          >
-            <Input placeholder="FSSAI number" />
-          </Form.Item>
-
-          {/* <Form.Item label="TextArea">
-            <TextArea rows={4} />
-          </Form.Item> */}
 
           <Form.Item
             label="Document"
