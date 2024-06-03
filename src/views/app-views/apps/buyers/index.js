@@ -18,6 +18,8 @@ import utils from "utils";
 import AddBuers from "./Add";
 import axios from "axios";
 import { GetApi } from "services/api";
+import { db } from "auth/FirebaseAuth";
+import { collection, getDocs } from "firebase/firestore/lite";
 
 const { Option } = Select;
 
@@ -56,16 +58,33 @@ const BuyersList = () => {
   const [list, setList] = useState(null);
   const [selectedRows, setSelectedRows] = useState([]);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   // api data store
 
   const [add, setAdd] = useState(false);
 
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "buyers"));
+        const res = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setList(res);
+      } catch (error) {
+        console.error("Error getting documents: ", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
+    fetchDocuments();
+  }, []);
 
   const dropdownMenu = (row) => (
     <Menu>
-      {console.log("2222", row)}
       <Menu.Item onClick={() => viewDetails(row)}>
         <Flex alignItems="center">
           <EyeOutlined />
@@ -122,7 +141,7 @@ const BuyersList = () => {
   const tableColumns = [
     {
       title: "ID",
-      dataIndex: "_id",
+      dataIndex: "id",
     },
     {
       title: "Users",
@@ -132,12 +151,6 @@ const BuyersList = () => {
           className="d-flex"
           style={{ marginRight: "10px", alignItems: "center" }}
         >
-          {/* <AvatarStatus
-            size={40}
-            type="square"
-            // src={record.image}
-            name={record.name}
-          /> */}
           <div
             style={{
               minWidth: "30px",
@@ -234,25 +247,13 @@ const BuyersList = () => {
     }
   };
 
-  useEffect(() => {
-       const fetchData = async () => {
-         const response = await GetApi("/api/buyers");
-         if (response && response.status === 200) {
-           setList(response?.data);
-         }
-       };
-
-    fetchData();
-
-    // Cleanup function to cancel the API call if component unmounts
-    return () => {
-      // Cancel the API call if needed (if using axios cancel token)
-    };
-  }, [add]);
-
   const newAddBuers = (e) => {
     setAdd(e);
   };
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <Card>
@@ -293,7 +294,7 @@ const BuyersList = () => {
       <div className="table-responsive">
         <Table
           columns={tableColumns}
-          dataSource={list}
+          dataSource={list || list}
           rowKey="id"
           rowSelection={{
             selectedRowKeys: selectedRowKeys,

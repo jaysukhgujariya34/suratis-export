@@ -13,7 +13,8 @@ import TextArea from "antd/es/input/TextArea";
 import { PlusOutlined } from "@ant-design/icons";
 import { FlagIcon } from "react-flag-kit";
 import { GetApi, PostApi } from "services/api";
-
+import { addDoc, collection, serverTimestamp } from "firebase/firestore/lite";
+import { db } from "auth/FirebaseAuth";
 
 const AddSuppliers = ({ add }) => {
   const [open, setOpen] = useState(false);
@@ -36,12 +37,22 @@ const AddSuppliers = ({ add }) => {
     }
     return e?.fileList;
   };
+  const [form] = Form.useForm();
 
   const onFinish = async (values) => {
-    const result = await PostApi("/api/suppliers", values);
-    if (result && result.status === 200) {
+    try {
+      const res = await addDoc(collection(db, "suppliers"), {
+        ...values,
+        timestamp: serverTimestamp(),
+      });
+
       handleCancel();
       add(true);
+
+      form.resetFields();
+    } catch (error) {
+      console.error("Error adding document: ", error);
+      // Optionally, you can show an error message to the user here
     }
   };
 
@@ -55,9 +66,6 @@ const AddSuppliers = ({ add }) => {
   const handleCountryCodeChange = (value) => {
     setCountryCode(value);
   };
-
- 
-
 
   return (
     <>
@@ -129,7 +137,7 @@ const AddSuppliers = ({ add }) => {
                     onChange={handleCountryCodeChange}
                     dropdownRender={(menu) => <div>{menu}</div>}
                   >
-                    <Select.Option value={countryCode}>
+                    <Select.Option value="+1">
                       <FlagIcon code="US" />
                       <span style={{ marginLeft: 8 }}>+1</span>
                     </Select.Option>
@@ -144,6 +152,11 @@ const AddSuppliers = ({ add }) => {
                     <Select.Option value="+61">
                       <FlagIcon code="AU" />
                       <span style={{ marginLeft: 8 }}>+61</span>
+                    </Select.Option>
+
+                    <Select.Option value="+90">
+                      <FlagIcon code="TR" />
+                      <span style={{ marginLeft: 8 }}>+90</span>
                     </Select.Option>
                     {/* Add more country codes as needed */}
                   </Select>
@@ -178,18 +191,21 @@ const AddSuppliers = ({ add }) => {
             <Input placeholder="Product Name" />
           </Form.Item>
 
+          <p style={{ marginBottom: "2px" }}>
+            <span style={{ color: "red", marginRight: "2px" }}>*</span>
+            Country
+          </p>
           <Form.Item
-            label="State"
-            name="state"
-            rules={[{ required: true, message: "Please select an State" }]}
             hasFeedback
+            // label="GST Number"
+            name="country"
+            validateDebounce={1000}
+            rules={[{ required: true, message: "Please select an State" }]}
           >
-            <Select>
-              <Select.Option value="gujrat">Gujrat</Select.Option>
-            </Select>
+            <Input placeholder="country" />
           </Form.Item>
 
-          <Form.Item
+          {/* <Form.Item
             label="Document"
             valuePropName="fileList"
             getValueFromEvent={normFile}
@@ -200,7 +216,7 @@ const AddSuppliers = ({ add }) => {
                 <div style={{ marginTop: 8 }}>Upload</div>
               </button>
             </Upload>
-          </Form.Item>
+          </Form.Item> */}
           <Form.Item label=" " colon={false}>
             <Button style={{ float: "right" }} type="primary" htmlType="submit">
               Add

@@ -17,6 +17,8 @@ import { useNavigate } from "react-router-dom";
 import utils from "utils";
 import AddSuppliers from "./Add";
 import { GetApi } from "services/api";
+import { collection, getDocs } from "firebase/firestore/lite";
+import { db } from "auth/FirebaseAuth";
 
 const { Option } = Select;
 
@@ -55,7 +57,8 @@ const SupplierList = () => {
   const [list, setList] = useState([]);
   const [selectedRows, setSelectedRows] = useState([]);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
-    const [add, setAdd] = useState(false);
+  const [add, setAdd] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const dropdownMenu = (row) => (
     <Menu>
@@ -93,10 +96,6 @@ const SupplierList = () => {
     </Menu>
   );
 
-  const addProduct = () => {
-    navigate(`/app/apps/ecommerce/add-product`);
-  };
-
   const viewDetails = (row) => {
     navigate(`/app/apps/ecommerce/edit-product/${row.id}`);
   };
@@ -125,21 +124,47 @@ const SupplierList = () => {
       title: "Users",
       dataIndex: "name",
       render: (_, record) => (
-        <div className="d-flex">
-          <AvatarStatus
-            size={40}
-            type="square"
-            src={record.image}
-            name={record.name}
-          />
+        <div
+          className="d-flex"
+          style={{ marginRight: "10px", alignItems: "center" }}
+        >
+          <div
+            style={{
+              minWidth: "30px",
+              fontWeight: "700",
+              backgroundColor: "grey",
+              color: "#fff",
+              textAlign: "center",
+              fontSize: "20px",
+              minHeight: "30px",
+              borderRadius: "8px",
+              textTransform: "capitalize",
+              marginRight: "10px",
+            }}
+          >
+            {record.name[0]}
+          </div>
+          {record.name}
         </div>
       ),
       sorter: (a, b) => utils.antdTableSorter(a, b, "name"),
     },
     {
       title: "Contect Number",
-      dataIndex: "contectNumber",
-      sorter: (a, b) => utils.antdTableSorter(a, b, "contectNumber"),
+      dataIndex: "phoneNumber",
+      render: (_, record) => (
+        <div>
+          <a
+            href={`https://web.whatsapp.com/send?phone=${record.phoneNumber}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <span className="mr-1">{record.prefix}</span>
+            {record.phoneNumber}
+          </a>
+        </div>
+      ),
+      sorter: (a, b) => utils.antdTableSorter(a, b, "phoneNumber"),
     },
     {
       title: "Email",
@@ -148,8 +173,8 @@ const SupplierList = () => {
     },
     {
       title: "Category",
-      dataIndex: "category",
-      sorter: (a, b) => utils.antdTableSorter(a, b, "category"),
+      dataIndex: "catagory",
+      sorter: (a, b) => utils.antdTableSorter(a, b, "catagory"),
     },
     {
       title: "Product",
@@ -157,9 +182,9 @@ const SupplierList = () => {
       sorter: (a, b) => utils.antdTableSorter(a, b, "price"),
     },
     {
-      title: "State",
-      dataIndex: "state",
-      sorter: (a, b) => utils.antdTableSorter(a, b, "state"),
+      title: "Country",
+      dataIndex: "country",
+      sorter: (a, b) => utils.antdTableSorter(a, b, "country"),
     },
     {
       title: "Status",
@@ -174,7 +199,7 @@ const SupplierList = () => {
       dataIndex: "actions",
       render: (elm) => (
         <div className="text-right">
-          {console.log("11111",elm)}
+          {console.log("11111", elm)}
           <EllipsisDropdown menu={dropdownMenu(elm)} />
         </div>
       ),
@@ -206,25 +231,32 @@ const SupplierList = () => {
     }
   };
 
-     useEffect(() => {
-       const fetchData = async () => {
-         const response = await GetApi("/api/suppliers");
-         if (response && response.status === 200) {
-           setList(response?.data);
-         }
-       };
-
-       fetchData();
-
-       // Cleanup function to cancel the API call if component unmounts
-       return () => {
-         // Cancel the API call if needed (if using axios cancel token)
-       };
-     }, []);
-  
-    const newAddBuers = (e) => {
-      setAdd(e);
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "suppliers"));
+        const res = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setList(res);
+      } catch (error) {
+        console.error("Error getting documents: ", error);
+      } finally {
+        setLoading(false);
+      }
     };
+
+    fetchDocuments();
+  }, [add]);
+
+  const newAddBuers = (e) => {
+    setAdd(e);
+  };
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <Card>

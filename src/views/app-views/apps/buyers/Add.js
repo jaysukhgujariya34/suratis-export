@@ -15,6 +15,14 @@ import { FlagIcon } from "react-flag-kit";
 import axios from "axios";
 import { PostApi } from "services/api";
 import { Navigate } from "react-router-dom";
+import { db } from "auth/FirebaseAuth";
+import {
+  addDoc,
+  collection,
+  doc,
+  serverTimestamp,
+  setDoc,
+} from "firebase/firestore/lite";
 
 const AddBuers = ({ add }) => {
   const [open, setOpen] = useState(false);
@@ -40,15 +48,25 @@ const AddBuers = ({ add }) => {
 
   const [form] = Form.useForm();
   const onFinish = async (values) => {
+    try {
+      const res = await addDoc(collection(db, "buyers"), {
+        name: values?.name || "",
+        email: values?.email || "",
+        prefix: values?.prefix || "",
+        contactNumber: values?.contactNumber || "", // Fixed typo
+        category: values?.category || "",
+        product: values?.product || "",
+        state: values?.state || "",
+        timestamp: serverTimestamp(),
+      });
 
-    const result = await PostApi("/api/buyers", values);
-
-    if (result && result.status === 200) {
       handleCancel();
-      add(true);
-      console.log(result.data.message);
+      console.log("Document added with ID: ", res.id);
+      form.resetFields();
+    } catch (error) {
+      console.error("Error adding document: ", error);
+      // Optionally, you can show an error message to the user here
     }
-    form.resetFields();
   };
 
   const handleCountryCodeChange = (value) => {
@@ -194,7 +212,7 @@ const AddBuers = ({ add }) => {
             <TextArea rows={4} />
           </Form.Item> */}
 
-          <Form.Item
+          {/* <Form.Item
             label="Document"
             valuePropName="fileList"
             getValueFromEvent={normFile}
@@ -205,7 +223,7 @@ const AddBuers = ({ add }) => {
                 <div style={{ marginTop: 8 }}>Upload</div>
               </button>
             </Upload>
-          </Form.Item>
+          </Form.Item> */}
           <Form.Item label=" " colon={false}>
             <Button style={{ float: "right" }} type="primary" htmlType="submit">
               Add
