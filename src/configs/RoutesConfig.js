@@ -8,19 +8,9 @@ export const publicRoutes = [
         component: React.lazy(() => import('views/auth-views/authentication/login')),
     },
     {
-        key: 'login-1',
-        path: `${AUTH_PREFIX_PATH}/login-1`,
-        component: React.lazy(() => import('views/auth-views/authentication/login-1')),
-    },
-    {
-        key: 'login-2',
-        path: `${AUTH_PREFIX_PATH}/login-2`,
-        component: React.lazy(() => import('views/auth-views/authentication/login-2')),
-    },
-    {
         key: 'register',
         path: `${AUTH_PREFIX_PATH}/register`,
-        component: React.lazy(() => import('views/auth-views/authentication/register-1')),
+        component: React.lazy(() => import('views/auth-views/authentication/register')),
     },
     // {
     //     key: 'register-2',
