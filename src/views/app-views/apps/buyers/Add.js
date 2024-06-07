@@ -1,71 +1,53 @@
-import React, { useEffect, useState } from "react";
-import {
-  Button,
-  Form,
-  Input,
-  InputNumber,
-  Modal,
-  Select,
-  Space,
-  Upload,
-} from "antd";
-import TextArea from "antd/es/input/TextArea";
-import { PlusOutlined } from "@ant-design/icons";
+import React, { useState } from "react";
+import { Button, Form, Input, Modal, Select } from "antd";
 import { FlagIcon } from "react-flag-kit";
-import axios from "axios";
-import { PostApi } from "services/api";
-import { Navigate } from "react-router-dom";
 import { db } from "auth/FirebaseAuth";
 import {
   addDoc,
   collection,
   doc,
   serverTimestamp,
-  setDoc,
+  updateDoc,
 } from "firebase/firestore/lite";
 
-const AddBuers = ({ add }) => {
-  const [open, setOpen] = useState(false);
+const AddBuers = ({
+  addModal,
+  setAddModal,
+  add,
+  editmodel,
+  setEditModal,
+  buyers,
+}) => {
   const [countryCode, setCountryCode] = useState("+1"); // Default country code
 
-  const showModal = () => {
-    setOpen(true);
-  };
-  const handleOk = () => {
-    setOpen(false);
-  };
-
   const handleCancel = () => {
-    setOpen(false);
-  };
-
-  const normFile = (e) => {
-    if (Array.isArray(e)) {
-      return e;
+    if (buyers) {
+      setEditModal(false);
     }
-    return e?.fileList;
+    setAddModal(false);
   };
 
   const [form] = Form.useForm();
   const onFinish = async (values) => {
     try {
-      const res = await addDoc(collection(db, "buyers"), {
-        name: values?.name || "",
-        email: values?.email || "",
-        prefix: values?.prefix || "",
-        contactNumber: values?.contactNumber || "", // Fixed typo
-        category: values?.category || "",
-        product: values?.product || "",
-        state: values?.state || "",
-        timestamp: serverTimestamp(),
-      });
-
-      handleCancel();
-      console.log("Document added with ID: ", res.id);
-      form.resetFields();
+      if (buyers) {
+        await updateDoc(doc(db, "buyers", buyers?.id), {
+          ...values,
+          timestamp: serverTimestamp(),
+        });
+        setEditModal(false);
+        add(true);
+      } else {
+        await addDoc(collection(db, "buyers"), {
+          ...values,
+          timestamp: serverTimestamp(),
+        });
+        setAddModal(false);
+        form.resetFields();
+        add(true);
+      }
     } catch (error) {
       console.error("Error adding document: ", error);
-      // Optionally, you can show an error message to the user here
     }
   };
 
@@ -73,42 +55,36 @@ const AddBuers = ({ add }) => {
     setCountryCode(value);
   };
 
-  // const validatePhoneNumber = (_, value) => {
-  //   const phoneNumberRegex = /^[0-9]$/; // Modify this regex according to your phone number format
-  //   if (!value || phoneNumberRegex.test(value)) {
-  //     return Promise.resolve();
-  //   }
-  //   return Promise.reject("Please enter a valid phone number");
-  // };
-
   return (
     <>
-      <Space>
-        <Button type="primary" onClick={showModal}>
-          <PlusOutlined />
-          {/* <span className="buttoneSize"> Add Supplier</span> */}
-        </Button>
-      </Space>
       <Modal
-        open={open}
+        open={addModal || editmodel}
         title="Add Buers"
-        onOk={handleOk}
         onCancel={handleCancel}
-        footer={(_, { OkBtn, CancelBtn }) => (
-          <>
-            <Button>Custom Button</Button>
-            <CancelBtn />
-            <OkBtn />
-          </>
-        )}
+        footer={[
+          <Button key="cancel" onClick={handleCancel}>
+            Cancel
+          </Button>,
+          <Button key="submit" type="primary" onClick={() => form.submit()}>
+            {buyers ? "Update" : "Add"}
+          </Button>,
+        ]}
       >
         <Form
           labelCol={{ span: 4 }}
           wrapperCol={{ span: 24 }}
-          initialValues={{ remember: true }}
           onFinish={onFinish}
           layout="vertical"
           form={form}
+          initialValues={{
+            name: buyers?.name || "",
+            email: buyers?.email || "",
+            contectNomber: buyers?.contectNomber || "",
+            prefix: buyers?.prefix || "",
+            category: buyers?.category || "",
+            product: buyers?.product || "",
+            country: buyers?.country || "",
+          }}
         >
           <Form.Item
             hasFeedback
@@ -127,56 +103,60 @@ const AddBuers = ({ add }) => {
             validateDebounce={1000}
             rules={[{ required: true, message: "Supplier Email Is Required" }]}
           >
-            <Input placeholder="sampale@gmail.com" />
+            <Input placeholder="sample@gmail.com" />
           </Form.Item>
 
+          <p style={{ marginBottom: "2px" }}>
+            <span style={{ color: "red", marginRight: "2px" }}>*</span>
+            Phone Number
+          </p>
           <Form.Item
             style={{ width: "100%" }}
             name="contectNomber"
-            label="Phone Number"
+            // label="Phone Number"
             rules={[
               { required: true, message: "Please input your phone number!" },
-              // { validator: validatePhoneNumber },?
+              {
+                pattern: /^\d+$/,
+                message: "Please enter a valid phone number",
+              },
             ]}
           >
             <Input
               addonBefore={
-                <Form.Item name="prefix" noStyle>
-                  <Select
-                    defaultValue={countryCode}
-                    style={{ border: "none" }}
-                    value={countryCode}
-                    onChange={handleCountryCodeChange}
-                    dropdownRender={(menu) => <div>{menu}</div>}
-                  >
-                    <Select.Option value="+1">
-                      <FlagIcon code="US" />
-                      <span style={{ marginLeft: 8 }}>+1</span>
-                    </Select.Option>
-                    <Select.Option value="+44">
-                      <FlagIcon code="GB" />
-                      <span style={{ marginLeft: 8 }}>+44</span>
-                    </Select.Option>
-                    <Select.Option value="+91">
-                      <FlagIcon code="IN" />
-                      <span style={{ marginLeft: 8 }}>+91</span>
-                    </Select.Option>
-                    <Select.Option value="+971">
-                      <FlagIcon code="AE" />
-                      <span style={{ marginLeft: 8 }}>+971</span>
-                    </Select.Option>
-                    {/* Add more country codes as needed */}
-                  </Select>
-                </Form.Item>
+                <Select
+                  defaultValue={countryCode}
+                  style={{ border: "none" }}
+                  value={buyers?.prefix || countryCode}
+                  onChange={handleCountryCodeChange}
+                  dropdownRender={(menu) => <div>{menu}</div>}
+                >
+                  <Select.Option value="+1">
+                    <FlagIcon code="US" />
+                    <span style={{ marginLeft: 8 }}>+1</span>
+                  </Select.Option>
+                  <Select.Option value="+44">
+                    <FlagIcon code="GB" />
+                    <span style={{ marginLeft: 8 }}>+44</span>
+                  </Select.Option>
+                  <Select.Option value="+91">
+                    <FlagIcon code="IN" />
+                    <span style={{ marginLeft: 8 }}>+91</span>
+                  </Select.Option>
+                  <Select.Option value="+971">
+                    <FlagIcon code="AE" />
+                    <span style={{ marginLeft: 8 }}>+971</span>
+                  </Select.Option>
+                </Select>
               }
               placeholder="Phone Number"
             />
           </Form.Item>
 
           <Form.Item
-            label="Catagory"
+            label="Category"
             name="category"
-            rules={[{ required: true, message: "Please select an category" }]}
+            rules={[{ required: true, message: "Please select a category" }]}
             hasFeedback
           >
             <Select placeholder="Select an option">
@@ -187,54 +167,23 @@ const AddBuers = ({ add }) => {
           <Form.Item
             label="Product"
             name="product"
-            rules={[{ required: true, message: "Please select an Product" }]}
+            rules={[{ required: true, message: "Please select a Product" }]}
             hasFeedback
           >
             <Select>
-              <Select.Option value="Redchilli">Red chilli</Select.Option>
+              <Select.Option value="Redchilli">Red Chilli</Select.Option>
               <Select.Option value="StarAnise">Star Anise</Select.Option>
               <Select.Option value="Turmeric">Turmeric</Select.Option>
             </Select>
           </Form.Item>
 
           <Form.Item
-            label="State"
-            name="state"
-            rules={[{ required: true, message: "Please select an State" }]}
+            label="Country"
+            name="country"
+            rules={[{ required: true, message: "Please select a country" }]}
             hasFeedback
           >
-            <Select>
-              <Select.Option value="gujrat">Gujrat</Select.Option>
-            </Select>
-          </Form.Item>
-
-          {/* <Form.Item label="TextArea">
-            <TextArea rows={4} />
-          </Form.Item> */}
-
-          {/* <Form.Item
-            label="Document"
-            valuePropName="fileList"
-            getValueFromEvent={normFile}
-          >
-            <Upload action="/upload.do" listType="picture-card">
-              <button style={{ border: 0, background: "none" }} type="button">
-                <PlusOutlined />
-                <div style={{ marginTop: 8 }}>Upload</div>
-              </button>
-            </Upload>
-          </Form.Item> */}
-          <Form.Item label=" " colon={false}>
-            <Button style={{ float: "right" }} type="primary" htmlType="submit">
-              Add
-            </Button>
-            <Button
-              style={{ float: "right", marginRight: "10px" }}
-              type="default"
-              onClick={handleCancel}
-            >
-              Cancel
-            </Button>
+            <Input placeholder="Country" />
           </Form.Item>
         </Form>
       </Modal>

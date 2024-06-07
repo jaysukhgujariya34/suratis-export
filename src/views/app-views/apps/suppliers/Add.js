@@ -1,59 +1,62 @@
 import React, { useState, useEffect } from "react";
-import {
-  Button,
-  Form,
-  Input,
-  InputNumber,
-  Modal,
-  Select,
-  Space,
-  Upload,
-} from "antd";
-import TextArea from "antd/es/input/TextArea";
-import { PlusOutlined } from "@ant-design/icons";
+import { Button, Form, Input, Modal, Select } from "antd";
 import { FlagIcon } from "react-flag-kit";
-import { GetApi, PostApi } from "services/api";
-import { addDoc, collection, serverTimestamp } from "firebase/firestore/lite";
+import {
+  addDoc,
+  collection,
+  doc,
+  serverTimestamp,
+  updateDoc,
+} from "firebase/firestore/lite";
 import { db } from "auth/FirebaseAuth";
 
-const AddSuppliers = ({ add }) => {
-  const [open, setOpen] = useState(false);
-  const [countryCode, setCountryCode] = useState("+1"); // Default country code
-
-  const showModal = () => {
-    setOpen(true);
-  };
-  const handleOk = () => {
-    setOpen(false);
-  };
-
-  const handleCancel = () => {
-    setOpen(false);
-  };
-
-  const normFile = (e) => {
-    if (Array.isArray(e)) {
-      return e;
-    }
-    return e?.fileList;
-  };
+const AddSuppliers = ({
+  addModal,
+  setAddModal,
+  add,
+  editmodel,
+  setEditModal,
+  suppliers,
+}) => {
+  const [countryCode, setCountryCode] = useState("+91"); // Default country code
   const [form] = Form.useForm();
+
+  useEffect(() => {
+    if (suppliers) {
+      form.setFieldsValue(suppliers);
+    }
+  }, [suppliers, form]);
 
   const onFinish = async (values) => {
     try {
-      const res = await addDoc(collection(db, "suppliers"), {
-        ...values,
-        timestamp: serverTimestamp(),
-      });
+      if (suppliers) {
+        await updateDoc(doc(db, "suppliers", suppliers?.id), {
+          ...values,
+          timestamp: serverTimestamp(),
+        });
+        setEditModal(false);
+      } else {
+        await addDoc(collection(db, "suppliers"), {
+          ...values,
+          timestamp: serverTimestamp(),
+        });
+        setAddModal(false);
+      }
 
-      handleCancel();
       add(true);
 
-      form.resetFields();
+      form.resetFields(); // Clear the suppliers state
     } catch (error) {
       console.error("Error adding document: ", error);
-      // Optionally, you can show an error message to the user here
     }
+  };
+
+  const handleCancel = () => {
+    if (!suppliers) {
+      setAddModal(false);
+    }
+    setEditModal(false);
+    // Clear the suppliers state
   };
 
   const validateNumber = (_, value) => {
@@ -68,170 +71,113 @@ const AddSuppliers = ({ add }) => {
   };
 
   return (
-    <>
-      <Space>
-        <Button type="primary" onClick={showModal}>
-          <PlusOutlined />
-          {/* <span className="buttoneSize"> Add Supplier</span> */}
-        </Button>
-      </Space>
-      <Modal
-        open={open}
-        title="Add Suppliers"
-        onOk={handleOk}
-        onCancel={handleCancel}
-        footer={(_, { OkBtn, CancelBtn }) => (
-          <>
-            <Button>Custom Button</Button>
-            <CancelBtn />
-            <OkBtn />
-          </>
-        )}
+    <Modal
+      open={addModal || editmodel}
+      title="Add Suppliers"
+      onOk={() => form.submit()}
+      onCancel={handleCancel}
+      footer={[
+        <Button key="cancel" onClick={handleCancel}>
+          Cancel
+        </Button>,
+        <Button key="submit" type="primary" onClick={() => form.submit()}>
+          {suppliers ? "Update" : "Add"}
+        </Button>,
+      ]}
+    >
+      <Form
+        form={form}
+        labelCol={{ span: 4 }}
+        wrapperCol={{ span: 24 }}
+        onFinish={onFinish}
+        layout="vertical"
+        initialValues={{
+          name: suppliers?.name || "",
+          email: suppliers?.email || "",
+          phoneNumber: suppliers?.phoneNumber || "",
+          prefix: suppliers?.prefix || countryCode,
+          catagory: suppliers?.catagory || "",
+          product: suppliers?.product || "",
+          state: suppliers?.state || "",
+        }}
       >
-        <Form
-          labelCol={{ span: 4 }}
-          wrapperCol={{ span: 24 }}
-          onFinish={onFinish}
-          layout="vertical"
+        <Form.Item
+          label="Company Name"
+          name="name"
+          rules={[{ required: true, message: "Supplier Name Is Required" }]}
         >
-          <p style={{ marginBottom: "2px" }}>
-            {" "}
-            <span style={{ color: "red", marginRight: "2px" }}>*</span>Company
-            Name
-          </p>
-          <Form.Item
-            hasFeedback
-            // label="Company Name"
-            name="name"
-            validateDebounce={1000}
-            rules={[{ required: true, message: "Supplier Name Is Required" }]}
-          >
-            <Input placeholder="Name" />
-          </Form.Item>
+          <Input placeholder="Name" />
+        </Form.Item>
 
-          <Form.Item
-            hasFeedback
-            label="Email"
-            name="email"
-            validateDebounce={1000}
-            rules={[{ required: true, message: "Supplier Email Is Required" }]}
-          >
-            <Input placeholder="sampale@gmail.com" />
-          </Form.Item>
-          <p style={{ marginBottom: "2px" }}>
-            <span style={{ color: "red", marginRight: "2px" }}>*</span>Phone
-            Number
-          </p>
-          <Form.Item
-            style={{ width: "100%" }}
-            name="phoneNumber"
-            label=""
-            rules={[{ validator: validateNumber, max: 10 }]}
-          >
-            <Input
-              addonBefore={
-                <Form.Item name="prefix" noStyle>
-                  <Select
-                    defaultValue={countryCode}
-                    style={{ border: "none" }}
-                    onChange={handleCountryCodeChange}
-                    dropdownRender={(menu) => <div>{menu}</div>}
-                  >
-                    <Select.Option value="+1">
-                      <FlagIcon code="US" />
-                      <span style={{ marginLeft: 8 }}>+1</span>
-                    </Select.Option>
-                    <Select.Option value="+44">
-                      <FlagIcon code="GB" />
-                      <span style={{ marginLeft: 8 }}>+44</span>
-                    </Select.Option>
-                    <Select.Option value="+91">
-                      <FlagIcon code="IN" />
-                      <span style={{ marginLeft: 8 }}>+91</span>
-                    </Select.Option>
-                    <Select.Option value="+61">
-                      <FlagIcon code="AU" />
-                      <span style={{ marginLeft: 8 }}>+61</span>
-                    </Select.Option>
+        <Form.Item
+          label="Email"
+          name="email"
+          rules={[{ required: true, message: "Supplier Email Is Required" }]}
+        >
+          <Input placeholder="sample@gmail.com" />
+        </Form.Item>
 
-                    <Select.Option value="+90">
-                      <FlagIcon code="TR" />
-                      <span style={{ marginLeft: 8 }}>+90</span>
-                    </Select.Option>
-                    {/* Add more country codes as needed */}
-                  </Select>
-                </Form.Item>
-              }
-              placeholder="Phone Number"
-            />
-          </Form.Item>
+        <p style={{ marginBottom: "2px" }}>
+          <span style={{ color: "red", marginRight: "2px" }}>*</span>
+          Phone Number
+        </p>
+        <Form.Item
+          // label="Phone Number"
+          name="phoneNumber"
+          rules={[{ validator: validateNumber, max: 10 }]}
+        >
+          <Input
+            addonBefore={
+              <Form.Item name="prefix" noStyle>
+                <Select
+                  defaultValue={countryCode}
+                  style={{ border: "none" }}
+                  value={countryCode}
+                  onChange={handleCountryCodeChange}
+                  dropdownRender={(menu) => <div>{menu}</div>}
+                >
+                  <Select.Option value="+91">
+                    <FlagIcon code="IN" />
+                    <span style={{ marginLeft: 8 }}>+91</span>
+                  </Select.Option>
+                </Select>
+              </Form.Item>
+            }
+            placeholder="Phone Number"
+          />
+        </Form.Item>
 
-          <Form.Item
-            label="Catagory"
-            name="catagory"
-            rules={[{ required: true, message: "Please select an Catagory" }]}
-            hasFeedback
-          >
-            <Select>
-              <Select.Option value="spices">Spices</Select.Option>
-            </Select>
-          </Form.Item>
+        <Form.Item
+          label="Category"
+          name="catagory"
+          rules={[{ required: true, message: "Please select a Category" }]}
+        >
+          <Select>
+            <Select.Option value="spices">Spices</Select.Option>
+            <Select.Option value="bags">Bags</Select.Option>
+            <Select.Option value="shoes">Shoes</Select.Option>
+            <Select.Option value="watches">Watches</Select.Option>
+            <Select.Option value="devices">Devices</Select.Option>
+          </Select>
+        </Form.Item>
 
-          <p style={{ marginBottom: "2px" }}>
-            <span style={{ color: "red", marginRight: "2px" }}>*</span>
-            Product
-          </p>
-          <Form.Item
-            hasFeedback
-            // label="GST Number"
-            name="product"
-            validateDebounce={1000}
-            rules={[{ required: true, message: "Product Name Required" }]}
-          >
-            <Input placeholder="Product Name" />
-          </Form.Item>
+        <Form.Item
+          label="Product"
+          name="product"
+          rules={[{ required: true, message: "Product Name Required" }]}
+        >
+          <Input placeholder="Product Name" />
+        </Form.Item>
 
-          <p style={{ marginBottom: "2px" }}>
-            <span style={{ color: "red", marginRight: "2px" }}>*</span>
-            Country
-          </p>
-          <Form.Item
-            hasFeedback
-            // label="GST Number"
-            name="country"
-            validateDebounce={1000}
-            rules={[{ required: true, message: "Please select an State" }]}
-          >
-            <Input placeholder="country" />
-          </Form.Item>
-
-          {/* <Form.Item
-            label="Document"
-            valuePropName="fileList"
-            getValueFromEvent={normFile}
-          >
-            <Upload action="/upload.do" listType="picture-card">
-              <button style={{ border: 0, background: "none" }} type="button">
-                <PlusOutlined />
-                <div style={{ marginTop: 8 }}>Upload</div>
-              </button>
-            </Upload>
-          </Form.Item> */}
-          <Form.Item label=" " colon={false}>
-            <Button style={{ float: "right" }} type="primary" htmlType="submit">
-              Add
-            </Button>
-            <Button
-              style={{ float: "right", marginRight: "10px" }}
-              type="default"
-              onClick={handleCancel}
-            >
-              Cancel
-            </Button>
-          </Form.Item>
-        </Form>
-      </Modal>
-    </>
+        <Form.Item
+          label="State"
+          name="state"
+          rules={[{ required: true, message: "State Name Required" }]}
+        >
+          <Input placeholder="State Name" />
+        </Form.Item>
+      </Form>
+    </Modal>
   );
 };
 

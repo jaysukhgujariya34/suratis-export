@@ -1,5 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { Card, Table, Select, Input, Button, Badge, Menu } from "antd";
+import {
+  Card,
+  Table,
+  Select,
+  Input,
+  Button,
+  Badge,
+  Menu,
+  Tooltip,
+  Popconfirm,
+} from "antd";
 import ProductListData from "assets/data/product-list.data.json";
 import {
   EyeOutlined,
@@ -9,46 +19,19 @@ import {
   EditOutlined,
   DownloadOutlined,
 } from "@ant-design/icons";
-import AvatarStatus from "components/shared-components/AvatarStatus";
-import EllipsisDropdown from "components/shared-components/EllipsisDropdown";
+
 import Flex from "components/shared-components/Flex";
 import NumberFormat from "react-number-format";
+import { PlusOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import utils from "utils";
 import AddSuppliers from "./Add";
-import { GetApi } from "services/api";
-import { collection, getDocs } from "firebase/firestore/lite";
+import { collection, deleteDoc, doc, getDocs } from "firebase/firestore/lite";
 import { db } from "auth/FirebaseAuth";
 
 const { Option } = Select;
 
-const getStockStatus = (stockCount) => {
-  if (stockCount >= 10) {
-    return (
-      <>
-        <Badge status="success" />
-        <span>In Stock</span>
-      </>
-    );
-  }
-  if (stockCount < 10 && stockCount > 0) {
-    return (
-      <>
-        <Badge status="warning" />
-        <span>Limited Stock</span>
-      </>
-    );
-  }
-  if (stockCount === 0) {
-    return (
-      <>
-        <Badge status="error" />
-        <span>Out of Stock</span>
-      </>
-    );
-  }
-  return null;
-};
+
 
 const categories = ["spices", "Bags", "Shoes", "Watches", "Devices"];
 
@@ -58,70 +41,42 @@ const SupplierList = () => {
   const [selectedRows, setSelectedRows] = useState([]);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [add, setAdd] = useState(false);
+  const [editRow, setEditRow] = useState();
   const [loading, setLoading] = useState(true);
+  const [addModal, setAddModal] = useState(false);
+  const [addModaledit, setAddModaledit] = useState(false);
 
-  const dropdownMenu = (row) => (
-    <Menu>
-      <Menu.Item onClick={() => viewDetails(row)}>
-        <Flex alignItems="center">
-          <EyeOutlined />
-          <span className="ml-2">View Details</span>
-        </Flex>
-      </Menu.Item>
-
-      <Menu.Item onClick={() => viewDetails(row)}>
-        <Flex alignItems="center">
-          <EditOutlined />
-          <span className="ml-2">Edit Details</span>
-        </Flex>
-      </Menu.Item>
-
-      <Menu.Item onClick={() => viewDetails(row)}>
-        <Flex alignItems="center">
-          <DownloadOutlined />
-          <span className="ml-2">Download</span>
-        </Flex>
-      </Menu.Item>
-
-      <Menu.Item onClick={() => deleteRow(row)}>
-        <Flex alignItems="center">
-          <DeleteOutlined />
-          <span className="ml-2">
-            {selectedRows.length > 0
-              ? `Delete (${selectedRows.length})`
-              : "Delete"}
-          </span>
-        </Flex>
-      </Menu.Item>
-    </Menu>
-  );
-
-  const viewDetails = (row) => {
-    navigate(`/app/apps/ecommerce/edit-product/${row.id}`);
+  const fetchDocuments = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, "suppliers"));
+      const res = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setList(res);
+    } catch (error) {
+      console.error("Error getting documents: ", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const deleteRow = (row) => {
-    const objKey = "id";
-    let data = list;
-    if (selectedRows.length > 1) {
-      selectedRows.forEach((elm) => {
-        data = utils.deleteArrayRow(data, objKey, elm.id);
-        setList(data);
-        setSelectedRows([]);
-      });
-    } else {
-      data = utils.deleteArrayRow(data, objKey, row.id);
-      setList(data);
+  useEffect(() => {
+    fetchDocuments();
+  }, [add]);
+
+  const deleteData = async (id) => {
+    try {
+      await deleteDoc(doc(db, "suppliers", id));
+      fetchDocuments();
+    } catch (error) {
+      console.log(error);
     }
   };
 
   const tableColumns = [
     {
-      title: "ID",
-      dataIndex: "id",
-    },
-    {
-      title: "Users",
+      title: "Suppliers",
       dataIndex: "name",
       render: (_, record) => (
         <div
@@ -142,9 +97,11 @@ const SupplierList = () => {
               marginRight: "10px",
             }}
           >
-            {record.name[0]}
+            {record?.name[0]}
           </div>
-          {record.name}
+          {record?.name}
+          <br />
+          {record?.id}
         </div>
       ),
       sorter: (a, b) => utils.antdTableSorter(a, b, "name"),
@@ -155,12 +112,15 @@ const SupplierList = () => {
       render: (_, record) => (
         <div>
           <a
-            href={`https://web.whatsapp.com/send?phone=${record.phoneNumber}`}
+            href={`https://web.whatsapp.com/send?phone=${record.prefix + record.phoneNumber.replace(
+              /\s/g,
+              ""
+            )}`}
             target="_blank"
             rel="noopener noreferrer"
           >
-            <span className="mr-1">{record.prefix}</span>
-            {record.phoneNumber}
+            <span className="mr-1">{record?.prefix}</span>
+            {record?.phoneNumber}
           </a>
         </div>
       ),
@@ -182,26 +142,39 @@ const SupplierList = () => {
       sorter: (a, b) => utils.antdTableSorter(a, b, "price"),
     },
     {
-      title: "Country",
-      dataIndex: "country",
-      sorter: (a, b) => utils.antdTableSorter(a, b, "country"),
+      title: "State",
+      dataIndex: "state",
+      sorter: (a, b) => utils.antdTableSorter(a, b, "state"),
     },
     {
-      title: "Status",
-      dataIndex: "stock",
-      render: (stock) => (
-        <Flex alignItems="center">{getStockStatus(stock)}</Flex>
-      ),
-      sorter: (a, b) => utils.antdTableSorter(a, b, "stock"),
-    },
-    {
-      title: "",
+      title: "Actions",
       dataIndex: "actions",
-      render: (elm) => (
-        <div className="text-right">
-          {console.log("11111", elm)}
-          <EllipsisDropdown menu={dropdownMenu(elm)} />
-        </div>
+      render: (_, elm) => (
+        <>
+          <Tooltip title="View Details">
+            <Button icon={<EyeOutlined />}></Button>
+          </Tooltip>
+          <Tooltip title="Edit Details">
+            <Button
+              icon={<EditOutlined />}
+              onClick={() => {
+                setEditRow(elm);
+                setAddModaledit(true);
+              }}
+            />
+          </Tooltip>
+
+          <Tooltip title="Delete Data">
+            <Popconfirm
+              title="Are you sure delete this user?"
+              onConfirm={() => deleteData(elm.id)}
+              okText="Yes"
+              cancelText="No"
+            >
+              <Button icon={<DeleteOutlined />}></Button>
+            </Popconfirm>
+          </Tooltip>
+        </>
       ),
     },
   ];
@@ -230,25 +203,6 @@ const SupplierList = () => {
       setList(ProductListData);
     }
   };
-
-  useEffect(() => {
-    const fetchDocuments = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, "suppliers"));
-        const res = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setList(res);
-      } catch (error) {
-        console.error("Error getting documents: ", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDocuments();
-  }, [add]);
 
   const newAddBuers = (e) => {
     setAdd(e);
@@ -292,7 +246,28 @@ const SupplierList = () => {
         </Flex>
 
         <div>
-          <AddSuppliers add={newAddBuers} />
+          <Tooltip title="Add Supplier">
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => {
+                setAddModal(true);
+              }}
+            />
+          </Tooltip>
+
+          <AddSuppliers
+            editmodel={addModaledit}
+            setEditModal={setAddModaledit}
+            add={newAddBuers}
+            suppliers={editRow}
+          />
+
+          <AddSuppliers
+            addModal={addModal}
+            setAddModal={setAddModal}
+            add={newAddBuers}
+          />
         </div>
       </Flex>
       <div className="table-responsive">

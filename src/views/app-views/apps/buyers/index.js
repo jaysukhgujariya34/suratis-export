@@ -1,5 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { Card, Table, Select, Input, Button, Badge, Menu } from "antd";
+import {
+  Card,
+  Table,
+  Select,
+  Input,
+  Button,
+  Badge,
+  Menu,
+  Tooltip,
+  Popconfirm,
+} from "antd";
 import ProductListData from "assets/data/product-list.data.json";
 import {
   EyeOutlined,
@@ -15,11 +25,10 @@ import Flex from "components/shared-components/Flex";
 import NumberFormat from "react-number-format";
 import { useNavigate } from "react-router-dom";
 import utils from "utils";
+import { PlusOutlined } from "@ant-design/icons";
 import AddBuers from "./Add";
-import axios from "axios";
-import { GetApi } from "services/api";
 import { db } from "auth/FirebaseAuth";
-import { collection, getDocs } from "firebase/firestore/lite";
+import { collection, deleteDoc, doc, getDocs } from "firebase/firestore/lite";
 
 const { Option } = Select;
 
@@ -63,88 +72,41 @@ const BuyersList = () => {
   // api data store
 
   const [add, setAdd] = useState(false);
+  const [editRow, setEditRow] = useState();
+  const [addModal, setAddModal] = useState(false);
+  const [addModaledit, setAddModaledit] = useState(false);
+
+  const fetchDocuments = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, "buyers"));
+      const res = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setList(res);
+    } catch (error) {
+      console.error("Error getting documents: ", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchDocuments = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, "buyers"));
-        const res = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setList(res);
-      } catch (error) {
-        console.error("Error getting documents: ", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchDocuments();
   }, []);
 
-  const dropdownMenu = (row) => (
-    <Menu>
-      <Menu.Item onClick={() => viewDetails(row)}>
-        <Flex alignItems="center">
-          <EyeOutlined />
-          <span className="ml-2">View Details</span>
-        </Flex>
-      </Menu.Item>
-
-      <Menu.Item onClick={() => viewDetails(row)}>
-        <Flex alignItems="center">
-          <EditOutlined />
-          <span className="ml-2">Edit Details</span>
-        </Flex>
-      </Menu.Item>
-
-      <Menu.Item onClick={() => viewDetails(row)}>
-        <Flex alignItems="center">
-          <DownloadOutlined />
-          <span className="ml-2">Download</span>
-        </Flex>
-      </Menu.Item>
-
-      <Menu.Item onClick={() => deleteRow(row)}>
-        <Flex alignItems="center">
-          <DeleteOutlined />
-          <span className="ml-2">
-            {selectedRows.length > 0
-              ? `Delete (${selectedRows.length})`
-              : "Delete"}
-          </span>
-        </Flex>
-      </Menu.Item>
-    </Menu>
-  );
-
-  const viewDetails = (row) => {
-    navigate(`/app/apps/ecommerce/edit-product/${row.id}`);
-  };
-
-  const deleteRow = (row) => {
-    const objKey = "id";
-    let data = list;
-    if (selectedRows.length > 1) {
-      selectedRows.forEach((elm) => {
-        data = utils.deleteArrayRow(data, objKey, elm.id);
-        setList(data);
-        setSelectedRows([]);
-      });
-    } else {
-      data = utils.deleteArrayRow(data, objKey, row.id);
-      setList(data);
+  const deleteData = async (id) => {
+    try {
+      await deleteDoc(doc(db, "buyers", id));
+      fetchDocuments();
+    } catch (error) {
+      console.log(error);
     }
   };
 
   const tableColumns = [
     {
-      title: "ID",
-      dataIndex: "id",
-    },
-    {
-      title: "Users",
+      title: "Buyers",
       dataIndex: "name",
       render: (_, record) => (
         <div
@@ -165,9 +127,11 @@ const BuyersList = () => {
               marginRight: "10px",
             }}
           >
-            {record.name[0]}
+            {record?.name[0]}
           </div>
-          {record.name}
+          {record?.name}
+          <br />
+          {record?.id}
         </div>
       ),
       sorter: (a, b) => utils.antdTableSorter(a, b, "name"),
@@ -175,6 +139,19 @@ const BuyersList = () => {
     {
       title: "Contect Number",
       dataIndex: "contectNomber",
+      render: (_, record) => (
+        <div>
+          <a
+            href={`https://web.whatsapp.com/send?phone=${record?.contectNomber}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <span className="mr-1">
+              {record?.prefix} {record?.contectNomber}
+            </span>
+          </a>
+        </div>
+      ),
       sorter: (a, b) => utils.antdTableSorter(a, b, "contectNumber"),
     },
     {
@@ -193,9 +170,9 @@ const BuyersList = () => {
       sorter: (a, b) => utils.antdTableSorter(a, b, "price"),
     },
     {
-      title: "State",
-      dataIndex: "state",
-      sorter: (a, b) => utils.antdTableSorter(a, b, "state"),
+      title: "Country",
+      dataIndex: "country",
+      sorter: (a, b) => utils.antdTableSorter(a, b, "country"),
     },
     // {
     //   title: "Document",
@@ -209,15 +186,36 @@ const BuyersList = () => {
     //   sorter: (a, b) => utils.antdTableSorter(a, b, "stock"),
     // },
     {
-      title: "",
+      title: "Actions",
       dataIndex: "actions",
       render: (_, elm) => (
-        <div className="text-right">
-          <EllipsisDropdown
-            menu={dropdownMenu(elm)}
-            onClick={console.log("3333", elm)}
-          />
-        </div>
+        <>
+          <>
+            <Tooltip title="View Details">
+              <Button icon={<EyeOutlined />}></Button>
+            </Tooltip>
+            <Tooltip title="Edit Details">
+              <Button
+                icon={<EditOutlined />}
+                onClick={() => {
+                  setEditRow(elm);
+                  setAddModaledit(true);
+                }}
+              />
+            </Tooltip>
+
+            <Tooltip title="Delete Data">
+              <Popconfirm
+                title="Are you sure delete this user?"
+                onConfirm={() => deleteData(elm.id)}
+                okText="Yes"
+                cancelText="No"
+              >
+                <Button icon={<DeleteOutlined />}></Button>
+              </Popconfirm>
+            </Tooltip>
+          </>
+        </>
       ),
     },
   ];
@@ -260,17 +258,17 @@ const BuyersList = () => {
       <Flex
         alignItems="center"
         justifyContent="space-between"
-        mobileFlex={false}
+        // mobileFlex={false}
       >
-        <Flex className="mb-1" mobileFlex={false}>
-          <div className="mr-md-3 mb-3">
+        <Flex alignItems="center" mobileFlex={false} justifyContent="center">
+          <div>
             <Input
               placeholder="Search"
               prefix={<SearchOutlined />}
               onChange={(e) => onSearch(e)}
             />
           </div>
-          <div className="mb-3">
+          <div>
             <Select
               defaultValue="All"
               className="w-100"
@@ -288,7 +286,28 @@ const BuyersList = () => {
           </div>
         </Flex>
         <div>
-          <AddBuers add={newAddBuers} />
+          <Tooltip title="Add Supplier">
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => {
+                setAddModal(true);
+              }}
+            />
+          </Tooltip>
+
+          <AddBuers
+            addModal={addModal}
+            setAddModal={setAddModal}
+            add={newAddBuers}
+          />
+          <AddBuers
+            editmodel={addModaledit}
+            setEditModal={setAddModaledit}
+            add={newAddBuers}
+            buyers={editRow}
+            setSuppliers={setEditRow}
+          />
         </div>
       </Flex>
       <div className="table-responsive">

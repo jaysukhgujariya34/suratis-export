@@ -37,10 +37,7 @@ export const LoginForm = (props) => {
     allowRedirect = true,
   } = props;
 
-  const initialCredential = {
-    email: "suratiexport@gmail.com",
-    password: "Sur@t!es",
-  };
+
 
   const onLogin = (values) => {
     showLoading();
@@ -110,7 +107,6 @@ export const LoginForm = (props) => {
       <Form
         layout="vertical"
         name="login-form"
-        initialValues={initialCredential}
         onFinish={onLogin}
       >
         <Form.Item
