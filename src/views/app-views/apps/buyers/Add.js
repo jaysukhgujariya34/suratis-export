@@ -156,25 +156,19 @@ const AddBuers = ({
           <Form.Item
             label="Category"
             name="category"
-            rules={[{ required: true, message: "Please select a category" }]}
+            rules={[{ required: true, message: "Please enter a category" }]}
             hasFeedback
           >
-            <Select placeholder="Select an option">
-              <Select.Option value="spices">Spices</Select.Option>
-            </Select>
+            <Input placeholder="Country" />
           </Form.Item>
 
           <Form.Item
             label="Product"
             name="product"
-            rules={[{ required: true, message: "Please select a Product" }]}
+            rules={[{ required: true, message: "Please enter a product" }]}
             hasFeedback
           >
-            <Select>
-              <Select.Option value="Redchilli">Red Chilli</Select.Option>
-              <Select.Option value="StarAnise">Star Anise</Select.Option>
-              <Select.Option value="Turmeric">Turmeric</Select.Option>
-            </Select>
+            <Input placeholder="Country" />
           </Form.Item>
 
           <Form.Item
